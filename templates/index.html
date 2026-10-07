@@ -1,0 +1,2144 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thai Gourmet AI • ระบบรู้จำอาหารไทย & ประเมินความปลอดภัยสุขภาพ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --primary: #f95738;
+      --primary-glow: rgba(249, 87, 56, 0.35);
+      --primary-dark: #e03e1f;
+      --secondary: #0d3b66;
+      --accent: #ee964b;
+      --bg-gradient: linear-gradient(135deg, #0b132b 0%, #1c2541 50%, #1f2d4d 100%);
+      --card-bg: rgba(255, 255, 255, 0.94);
+      --card-glass: rgba(255, 255, 255, 0.08);
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border-subtle: rgba(226, 232, 240, 0.8);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Prompt', 'Plus Jakarta Sans', sans-serif;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      position: relative;
+      overflow-x: hidden;
+      padding: 40px 16px 60px;
+    }
+
+    /* Ambient decorative blobs */
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      z-index: 0;
+      opacity: 0.45;
+      pointer-events: none;
+      animation: floatBlob 10s infinite alternate ease-in-out;
+    }
+    .blob-1 {
+      top: -60px;
+      left: 10%;
+      width: 400px;
+      height: 400px;
+      background: #f95738;
+    }
+    .blob-2 {
+      bottom: 5%;
+      right: 5%;
+      width: 450px;
+      height: 450px;
+      background: #ee964b;
+    }
+    .blob-3 {
+      top: 40%;
+      right: 25%;
+      width: 350px;
+      height: 350px;
+      background: #3a86ff;
+      opacity: 0.25;
+    }
+
+    @keyframes floatBlob {
+      0% { transform: translateY(0) scale(1); }
+      100% { transform: translateY(30px) scale(1.08); }
+    }
+
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Header section */
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .brand-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fed7aa;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 6px 16px;
+      border-radius: 50px;
+      margin-bottom: 1rem;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+      letter-spacing: 0.5px;
+    }
+
+    .brand-pill i {
+      color: #f97316;
+    }
+
+    h1 {
+      font-size: 2.6rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 0.6rem;
+      letter-spacing: -0.5px;
+      text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 span {
+      background: linear-gradient(120deg, #ff9e79, #f95738);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      font-weight: 300;
+      max-width: 650px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* Layout Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.75rem;
+    }
+
+    @media (min-width: 860px) {
+      .grid {
+        grid-template-columns: 1.15fr 1fr;
+      }
+    }
+
+    /* Modern Card Styles */
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.4) inset;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--secondary);
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-title .icon-circle {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #fff1eb 0%, #ffdacf 100%);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+
+    /* Upload Area */
+    .upload-area {
+      border: 2px dashed #cbd5e1;
+      border-radius: 18px;
+      padding: 34px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .upload-area:hover, .upload-area.dragover {
+      border-color: var(--primary);
+      background: #fff6f3;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px -10px var(--primary-glow);
+    }
+
+    .upload-icon-wrapper {
+      width: 68px;
+      height: 68px;
+      margin: 0 auto 12px;
+      border-radius: 50%;
+      background: white;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      color: var(--primary);
+      transition: transform 0.3s ease;
+    }
+
+    .upload-area:hover .upload-icon-wrapper {
+      transform: scale(1.1) rotate(5deg);
+    }
+
+    .upload-text {
+      font-weight: 600;
+      color: #334155;
+      font-size: 1.05rem;
+      margin-bottom: 4px;
+    }
+
+    .upload-hint {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    #fileInput {
+      display: none;
+    }
+
+    /* Image Preview */
+    .preview-container {
+      margin-top: 1.25rem;
+      display: none;
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+      border: 2px solid white;
+    }
+
+    .preview-img {
+      width: 100%;
+      max-height: 260px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .preview-remove-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+      transition: all 0.2s;
+    }
+
+    .preview-remove-btn:hover {
+      background: var(--danger);
+      transform: scale(1.1);
+    }
+
+    /* Preference Chips Section */
+    .section-box {
+      margin-top: 1.25rem;
+      background: #f8fafc;
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 18px;
+    }
+
+    .section-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #475569;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .chip-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .chip-item {
+      display: inline-flex;
+      cursor: pointer;
+    }
+
+    .chip-item input[type="checkbox"] {
+      display: none;
+    }
+
+    .chip-label {
+      padding: 7px 14px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      color: #475569;
+      user-select: none;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+
+    .chip-item:hover .chip-label {
+      border-color: #cbd5e1;
+      transform: translateY(-1px);
+    }
+
+    .chip-item input[type="checkbox"]:checked + .chip-label {
+      background: #fff1eb;
+      border-color: #fdba74;
+      color: #ea580c;
+      font-weight: 600;
+      box-shadow: 0 4px 10px rgba(234, 88, 12, 0.15);
+    }
+
+    .chip-health input[type="checkbox"]:checked + .chip-label {
+      background: #e0f2fe;
+      border-color: #7dd3fc;
+      color: #0284c7;
+      font-weight: 600;
+      box-shadow: 0 4px 10px rgba(2, 132, 199, 0.15);
+    }
+
+    .custom-input {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+      font-size: 0.85rem;
+      outline: none;
+      background: white;
+      transition: all 0.2s;
+    }
+
+    .custom-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(249, 87, 56, 0.15);
+    }
+
+    /* Accordion for API Key */
+    .api-accordion {
+      margin-top: 1rem;
+      border-radius: 10px;
+    }
+
+    .api-accordion summary {
+      font-size: 0.82rem;
+      color: #64748b;
+      cursor: pointer;
+      font-weight: 500;
+      user-select: none;
+    }
+
+    .api-accordion-body {
+      margin-top: 8px;
+    }
+
+    /* Submit Button with Gradient and Glow */
+    .btn {
+      width: 100%;
+      padding: 15px 24px;
+      background: linear-gradient(135deg, #f95738 0%, #ee6c4d 100%);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 1.5rem;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 10px 25px -5px var(--primary-glow);
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 30px -5px rgba(249, 87, 56, 0.5);
+      background: linear-gradient(135deg, #e03e1f 0%, #f95738 100%);
+    }
+
+    .btn:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .btn:disabled {
+      background: #cbd5e1;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    /* Right Result Column */
+    .empty-state {
+      text-align: center;
+      color: var(--text-muted);
+      padding: 60px 20px;
+    }
+
+    .empty-icon-wrap {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
+      margin: 0 auto 16px;
+      color: #94a3b8;
+    }
+
+    /* Health Alert Cards */
+    .health-alert-box {
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .health-badge-card {
+      border-radius: 14px;
+      padding: 14px 18px;
+      border: 1px solid;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .health-badge-card.danger {
+      background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+      border-color: #fca5a5;
+      color: #991b1b;
+    }
+
+    .health-badge-card.warning {
+      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+      border-color: #fde68a;
+      color: #92400e;
+    }
+
+    .health-badge-card.safe {
+      background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+      border-color: #86efac;
+      color: #166534;
+    }
+
+    .health-badge-card .alert-icon {
+      font-size: 1.25rem;
+      margin-top: 2px;
+    }
+
+    .health-badge-header {
+      font-weight: 700;
+      font-size: 0.95rem;
+      margin-bottom: 2px;
+    }
+
+    .health-badge-body {
+      font-size: 0.85rem;
+      line-height: 1.45;
+      opacity: 0.95;
+    }
+
+    /* Top Result Card */
+    .top-result {
+      background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+      border: 2px solid #fed7aa;
+      border-radius: 18px;
+      padding: 22px;
+      margin-bottom: 1.5rem;
+      position: relative;
+      box-shadow: 0 10px 25px -5px rgba(251, 146, 60, 0.15);
+      animation: fadeIn 0.4s ease;
+    }
+
+    .top-badge {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: var(--primary);
+      color: white;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .top-result .food-name {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #7c2d12;
+      margin-bottom: 4px;
+      line-height: 1.2;
+    }
+
+    .top-result .food-label {
+      font-size: 0.95rem;
+      color: #c2410c;
+      margin-bottom: 14px;
+    }
+
+    .score-label-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #9a3412;
+      margin-bottom: 6px;
+    }
+
+    .progress-bar-bg {
+      background-color: rgba(0, 0, 0, 0.08);
+      border-radius: 20px;
+      height: 10px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #ea580c 0%, #f97316 100%);
+      border-radius: 20px;
+      transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Other candidates list */
+    .other-results-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #475569;
+      margin-bottom: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .results-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .result-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: #f8fafc;
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+      transition: all 0.2s;
+    }
+
+    .result-item:hover {
+      background: white;
+      border-color: #cbd5e1;
+      transform: translateX(4px);
+    }
+
+    .result-item-info {
+      flex: 1;
+    }
+
+    .result-item-name {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: #1e293b;
+    }
+
+    .result-item-rank {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .result-item-score-pill {
+      font-weight: 700;
+      color: var(--secondary);
+      background: #e2e8f0;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+    }
+
+    /* Error Toast */
+    .error-msg {
+      background-color: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #b91c1c;
+      padding: 12px 16px;
+      border-radius: 10px;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Spinner */
+    .spinner {
+      border: 3px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top: 3px solid white;
+      width: 20px;
+      height: 20px;
+      animation: spin 0.8s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Raw JSON Section */
+    .raw-json-details {
+      margin-top: 1.5rem;
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 1rem;
+    }
+
+    .raw-json-details summary {
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      user-select: none;
+    }
+
+    pre.json-box {
+      background: #0f172a;
+      color: #38bdf8;
+      padding: 14px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      overflow-x: auto;
+      margin-top: 8px;
+      max-height: 220px;
+      line-height: 1.5;
+    }
+
+    /* Service Navigation Tabs */
+    .service-nav {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 2rem;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(16px);
+      padding: 6px;
+      border-radius: 50px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      max-width: 660px;
+      margin-left: auto;
+      margin-right: auto;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    .nav-tab {
+      flex: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 18px;
+      border-radius: 40px;
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      white-space: nowrap;
+    }
+
+    .nav-tab:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .nav-tab.active {
+      background: linear-gradient(135deg, #f95738 0%, #ee964b 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 15px rgba(249, 87, 56, 0.4);
+    }
+
+    .nav-badge {
+      font-size: 0.7rem;
+      background: rgba(255, 255, 255, 0.25);
+      padding: 2px 7px;
+      border-radius: 20px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    /* Service 2: Chatbot Container & Elements */
+    .chat-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.4) inset;
+      display: flex;
+      flex-direction: column;
+      height: 680px;
+      max-height: 82vh;
+      overflow: hidden;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .chat-header {
+      padding: 16px 24px;
+      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .chat-header-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .chat-avatar-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%);
+      color: #ea580c;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      box-shadow: 0 4px 12px rgba(234, 88, 12, 0.15);
+    }
+
+    .chat-header-title {
+      font-weight: 700;
+      font-size: 1.15rem;
+      color: var(--secondary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .chat-model-tag {
+      font-size: 0.72rem;
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-family: monospace;
+      border: 1px solid #bae6fd;
+    }
+
+    .chat-header-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      color: #475569;
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: all 0.2s;
+    }
+
+    .icon-btn:hover {
+      background: #e2e8f0;
+      color: var(--secondary);
+      transform: translateY(-1px);
+    }
+
+    .chat-settings-panel {
+      background: #f8fafc;
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 16px 24px;
+      display: none;
+      animation: fadeIn 0.25s ease;
+      flex-shrink: 0;
+    }
+
+    .chat-settings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+    }
+
+    .setting-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .setting-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #475569;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .setting-input {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      font-size: 0.85rem;
+      background: white;
+      color: var(--text-main);
+    }
+
+    .setting-input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    /* Suggestion chips */
+    .quick-chips {
+      display: flex;
+      gap: 8px;
+      padding: 10px 20px;
+      background: #fafafa;
+      border-bottom: 1px solid #f1f5f9;
+      overflow-x: auto;
+      white-space: nowrap;
+      scrollbar-width: thin;
+      flex-shrink: 0;
+    }
+
+    .quick-chip {
+      background: #ffffff;
+      color: #334155;
+      font-size: 0.82rem;
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid #e2e8f0;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .quick-chip:hover {
+      background: #fff7ed;
+      color: #ea580c;
+      border-color: #fdba74;
+      transform: translateY(-1px);
+    }
+
+    /* Chat Messages Box */
+    .chat-messages {
+      flex: 1;
+      padding: 20px 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      background: linear-gradient(180deg, rgba(248, 250, 252, 0.5) 0%, rgba(255, 255, 255, 0.95) 100%);
+    }
+
+    .chat-msg {
+      display: flex;
+      gap: 12px;
+      max-width: 86%;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .chat-msg.user {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .chat-msg.assistant {
+      align-self: flex-start;
+    }
+
+    .msg-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 0.95rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .chat-msg.user .msg-avatar {
+      background: linear-gradient(135deg, #0d3b66 0%, #1e293b 100%);
+      color: white;
+    }
+
+    .chat-msg.assistant .msg-avatar {
+      background: linear-gradient(135deg, #f95738 0%, #ee964b 100%);
+      color: white;
+    }
+
+    .msg-body {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .msg-bubble {
+      padding: 13px 18px;
+      border-radius: 18px;
+      font-size: 0.93rem;
+      line-height: 1.6;
+      word-break: break-word;
+      position: relative;
+    }
+
+    .chat-msg.user .msg-bubble {
+      background: linear-gradient(135deg, #f95738 0%, #ea580c 100%);
+      color: white;
+      border-bottom-right-radius: 4px;
+      box-shadow: 0 6px 18px rgba(234, 88, 12, 0.25);
+    }
+
+    .chat-msg.assistant .msg-bubble {
+      background: #ffffff;
+      color: #1e293b;
+      border: 1px solid #e2e8f0;
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .chat-msg.assistant .msg-bubble pre {
+      background: #0f172a;
+      color: #38bdf8;
+      padding: 12px;
+      border-radius: 8px;
+      margin: 8px 0;
+      overflow-x: auto;
+      font-size: 0.85rem;
+    }
+
+    .chat-msg.assistant .msg-bubble code {
+      background: #f1f5f9;
+      color: #c2410c;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.88em;
+    }
+
+    .chat-msg.assistant .msg-bubble pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+
+    .chat-msg.assistant .msg-bubble ul, .chat-msg.assistant .msg-bubble ol {
+      margin-left: 20px;
+      margin-top: 6px;
+      margin-bottom: 6px;
+    }
+
+    .chat-msg.assistant .msg-bubble li {
+      margin-bottom: 4px;
+    }
+
+    .chat-msg.assistant .msg-bubble p {
+      margin-bottom: 8px;
+    }
+
+    .chat-msg.assistant .msg-bubble p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* Reasoning / Think Process Box */
+    .think-box {
+      background: #f1f5f9;
+      border-left: 3px solid #6366f1;
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin-bottom: 10px;
+      font-size: 0.84rem;
+      color: #475569;
+    }
+
+    .think-toggle {
+      font-weight: 600;
+      color: #4f46e5;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      user-select: none;
+    }
+
+    .think-content {
+      margin-top: 8px;
+      line-height: 1.5;
+      font-style: italic;
+      color: #64748b;
+      white-space: pre-wrap;
+      max-height: 250px;
+      overflow-y: auto;
+      background: rgba(255, 255, 255, 0.7);
+      padding: 8px;
+      border-radius: 6px;
+    }
+
+    .msg-footer {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.74rem;
+      color: #94a3b8;
+      padding: 0 4px;
+    }
+
+    .msg-copy-btn {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 0.74rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+
+    .msg-copy-btn:hover {
+      background: #f1f5f9;
+      color: #334155;
+    }
+
+    /* Chat Input Area */
+    .chat-input-area {
+      padding: 14px 20px;
+      background: white;
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      flex-shrink: 0;
+    }
+
+    .chat-textarea {
+      flex: 1;
+      resize: none;
+      min-height: 46px;
+      max-height: 130px;
+      padding: 11px 16px;
+      border-radius: 14px;
+      border: 1px solid #cbd5e1;
+      font-size: 0.95rem;
+      font-family: inherit;
+      line-height: 1.5;
+      background: #f8fafc;
+      transition: all 0.2s;
+    }
+
+    .chat-textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: white;
+      box-shadow: 0 0 0 3px rgba(249, 87, 56, 0.15);
+    }
+
+    .chat-send-btn {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #f95738 0%, #ea580c 100%);
+      color: white;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex-shrink: 0;
+      box-shadow: 0 4px 14px rgba(234, 88, 12, 0.3);
+    }
+
+    .chat-send-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(234, 88, 12, 0.4);
+    }
+
+    .chat-send-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .typing-dots {
+      display: inline-flex;
+      gap: 4px;
+      align-items: center;
+      padding: 6px 0;
+    }
+
+    .typing-dots span {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #f97316;
+      animation: blink 1.2s infinite ease-in-out;
+    }
+
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes blink {
+      0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+      40% { transform: scale(1.1); opacity: 1; }
+    }
+
+    /* Ask chat button in service 1 */
+    .btn-ask-chat {
+      margin-top: 14px;
+      width: 100%;
+      padding: 10px 16px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+      border: 1px dashed #f97316;
+      color: #c2410c;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-ask-chat:hover {
+      background: #fed7aa;
+      border-color: #ea580c;
+      transform: translateY(-1px);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient light blobs -->
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <div class="container">
+    <header>
+      <div class="brand-pill">
+        <i class="fa-solid fa-sparkles"></i> Dual AI Services • AI For Thai &amp; ThaiLLM
+      </div>
+      <h1>Thai Gourmet &amp; <span>Chatbot AI</span></h1>
+      <p class="subtitle">ระบบวิเคราะห์อาหารไทยอัจฉริยะ &amp; ผู้ช่วยแชทบอทภาษาไทย Pathumma ThaiLLM (Qwen3-8B Think)</p>
+    </header>
+
+    <!-- Service Switcher Tabs -->
+    <div class="service-nav">
+      <button class="nav-tab active" id="tabService1" onclick="switchService('food')">
+        <i class="fa-solid fa-camera-retro"></i>
+        <span>บริการที่ 1: ตรวจสอบอาหาร &amp; สุขภาพ</span>
+      </button>
+      <button class="nav-tab" id="tabService2" onclick="switchService('chat')">
+        <i class="fa-solid fa-robot"></i>
+        <span>บริการที่ 2: แชทบอท ThaiLLM</span>
+        <span class="nav-badge">ใหม่!</span>
+      </button>
+    </div>
+
+    <!-- Service 1: Food Recognition & Health Safety Section -->
+    <div id="serviceFoodSection" class="service-section">
+      <div class="grid">
+        <!-- Input Card -->
+        <div class="card">
+        <div class="card-title">
+          <div class="icon-circle"><i class="fa-solid fa-camera"></i></div>
+          <span>1. เลือกภาพอาหาร & สุขภาพ</span>
+        </div>
+
+        <div class="upload-area" id="dropArea">
+          <div class="upload-icon-wrapper">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+          </div>
+          <div class="upload-text">ลากและวางภาพอาหารที่นี่ หรือคลิกเพื่ออัปโหลด</div>
+          <div class="upload-hint">รองรับ JPG, PNG, WEBP ขนาดไม่เกิน 2 MB</div>
+          <input type="file" id="fileInput" accept="image/*">
+        </div>
+
+        <div class="preview-container" id="previewContainer">
+          <img id="imagePreview" class="preview-img" alt="ตัวอย่างภาพอาหาร">
+          <button type="button" class="preview-remove-btn" id="removeImgBtn" title="ลบภาพ">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <!-- Food Allergy & Health Restrictions Section -->
+        <div class="section-box">
+          <div class="section-title">
+            <i class="fa-solid fa-shield-virus" style="color: #ef4444;"></i> ประวัติการแพ้อาหาร (Food Allergy)
+          </div>
+          <div class="chip-group">
+            <label class="chip-item">
+              <input type="checkbox" name="allergy" value="shrimp">
+              <span class="chip-label">🦐 กุ้ง / สัตว์มีเปลือก</span>
+            </label>
+            <label class="chip-item">
+              <input type="checkbox" name="allergy" value="crab">
+              <span class="chip-label">🦀 ปู</span>
+            </label>
+            <label class="chip-item">
+              <input type="checkbox" name="allergy" value="fish">
+              <span class="chip-label">🐟 ปลา / น้ำปลา</span>
+            </label>
+            <label class="chip-item">
+              <input type="checkbox" name="allergy" value="peanuts">
+              <span class="chip-label">🥜 ถั่วลิสง</span>
+            </label>
+            <label class="chip-item">
+              <input type="checkbox" name="allergy" value="egg">
+              <span class="chip-label">🥚 ไข่</span>
+            </label>
+            <label class="chip-item">
+              <input type="checkbox" name="allergy" value="dairy">
+              <span class="chip-label">🥛 นมวัว</span>
+            </label>
+            <label class="chip-item">
+              <input type="checkbox" name="allergy" value="gluten">
+              <span class="chip-label">🌾 แป้งสาลี / กลูเตน</span>
+            </label>
+          </div>
+
+          <div class="section-title">
+            <i class="fa-solid fa-heart-pulse" style="color: #0284c7;"></i> ข้อจำกัดสุขภาพ / การรับประทาน (Dietary Restrictions)
+          </div>
+          <div class="chip-group">
+            <label class="chip-item chip-health">
+              <input type="checkbox" name="condition" value="diabetes">
+              <span class="chip-label">🍬 เบาหวาน (จำกัดน้ำตาล)</span>
+            </label>
+            <label class="chip-item chip-health">
+              <input type="checkbox" name="condition" value="hypertension">
+              <span class="chip-label">🧂 ความดัน / โซเดียมสูง</span>
+            </label>
+            <label class="chip-item chip-health">
+              <input type="checkbox" name="condition" value="gerd">
+              <span class="chip-label">🌶️ กรดไหลย้อน (งดเผ็ด/เปรี้ยว)</span>
+            </label>
+            <label class="chip-item chip-health">
+              <input type="checkbox" name="condition" value="halal">
+              <span class="chip-label">🚫 ไม่ทานหมู (ฮาลาล)</span>
+            </label>
+            <label class="chip-item chip-health">
+              <input type="checkbox" name="condition" value="vegetarian">
+              <span class="chip-label">🥗 มังสวิรัติ / เจ</span>
+            </label>
+          </div>
+
+          <div>
+            <label style="font-size: 0.8rem; font-weight: 500; color: var(--text-muted); display: block; margin-bottom: 5px;">
+              ต้องการหลีกเลี่ยงวัตถุดิบอื่นเพิ่มเติม (คั่นด้วยจุลภาค):
+            </label>
+            <input type="text" id="customRestrictions" class="custom-input" placeholder="เช่น กะทิ, ต้นหอม, พริกไทย, ชูรส">
+          </div>
+        </div>
+
+        <!-- API Key Accordion -->
+        <details class="api-accordion">
+          <summary><i class="fa-solid fa-key"></i> กำหนดค่า API Key (AI For Thai)</summary>
+          <div class="api-accordion-body">
+            <input type="text" id="apiKeyInput" class="custom-input" value="PVNKXPuEyOEnoIWTctJs6czMeqZ3sYqB" placeholder="กรอก API Key ใหม่หากต้องการ">
+          </div>
+        </details>
+
+        <div class="error-msg" id="errorBox">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span id="errorText"></span>
+        </div>
+
+        <button class="btn" id="submitBtn" disabled>
+          <span class="spinner" id="spinner"></span>
+          <i class="fa-solid fa-wand-magic-sparkles" id="btnIcon"></i>
+          <span id="btnText">วิเคราะห์อาหาร & ตรวจสอบสุขภาพ</span>
+        </button>
+      </div>
+
+      <!-- Result Card -->
+      <div class="card">
+        <div class="card-title">
+          <div class="icon-circle" style="background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%); color: var(--secondary);">
+            <i class="fa-solid fa-utensils"></i>
+          </div>
+          <span>2. ผลการรู้จำ & คำแนะนำ</span>
+        </div>
+
+        <div id="emptyResult" class="empty-state">
+          <div class="empty-icon-wrap">
+            <i class="fa-solid fa-magnifying-glass-chart"></i>
+          </div>
+          <div style="font-weight: 500; font-size: 1.05rem; color: #334155; margin-bottom: 6px;">พร้อมสำหรับการวิเคราะห์</div>
+          <div style="font-size: 0.9rem;">เลือกรูปภาพอาหารและระบุเงื่อนไขด้านสุขภาพ<br>ผลลัพธ์พร้อมระดับความปลอดภัยจะปรากฏที่นี่</div>
+        </div>
+
+        <div id="resultContent" style="display: none;">
+          <!-- Health Alerts & Safety Banner -->
+          <div class="health-alert-box" id="healthAlertContainer"></div>
+
+          <!-- Top 1 Result -->
+          <div class="top-result">
+            <div class="top-badge">
+              <i class="fa-solid fa-crown"></i> ความเป็นไปได้สูงสุด
+            </div>
+            <div class="food-name" id="topFoodResult">-</div>
+            <div class="food-label" id="topFoodLabel">-</div>
+            <div>
+              <div class="score-label-row">
+                <span>ความมั่นใจของโมเดล (Confidence)</span>
+                <span id="topFoodScore">0%</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="topProgressBar" style="width: 0%;"></div>
+              </div>
+            </div>
+            <button type="button" class="btn-ask-chat" id="askChatBtn" style="display: none;">
+              <i class="fa-solid fa-comment-dots"></i> ปรึกษาแชทบอท ThaiLLM เกี่ยวกับเมนูนี้
+            </button>
+          </div>
+
+          <!-- Other candidates -->
+          <div id="otherResultsSection">
+            <div class="other-results-title">
+              <i class="fa-solid fa-list-ol"></i> เมนูอื่นที่น่าจะเป็น (สำรอง):
+            </div>
+            <ul class="results-list" id="resultsList"></ul>
+          </div>
+
+          <!-- Raw JSON Details -->
+          <details class="raw-json-details">
+            <summary><i class="fa-solid fa-code"></i> ดูข้อมูลดิบ API JSON Response</summary>
+            <pre class="json-box" id="rawJsonBox"></pre>
+          </details>
+        </div>
+      </div>
+    </div>
+    </div> <!-- Close serviceFoodSection -->
+
+    <!-- Service 2: ThaiLLM Chatbot Section -->
+    <div id="serviceChatSection" class="service-section" style="display: none;">
+      <div class="chat-card">
+        <!-- Chat Header -->
+        <div class="chat-header">
+          <div class="chat-header-info">
+            <div class="chat-avatar-icon">
+              <i class="fa-solid fa-robot"></i>
+            </div>
+            <div>
+              <div class="chat-header-title">
+                <span>ThaiLLM AI Chatbot</span>
+                <span class="chat-model-tag" id="currentModelDisplay">pathumma-thaillm-qwen3-8b-think-3.0.0</span>
+              </div>
+              <div style="font-size: 0.8rem; color: #64748b; display: flex; align-items: center; gap: 6px;">
+                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981;"></span>
+                <span>Pathumma ThaiLLM • พร้อมให้บริการ</span>
+              </div>
+            </div>
+          </div>
+          <div class="chat-header-actions">
+            <button class="icon-btn" id="toggleChatSettingsBtn" title="ตั้งค่าโมเดลและ API Key">
+              <i class="fa-solid fa-sliders"></i>
+            </button>
+            <button class="icon-btn" id="clearChatBtn" title="ล้างประวัติการสนทนา">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Chat Settings Panel (Collapsible) -->
+        <div class="chat-settings-panel" id="chatSettingsPanel">
+          <div class="chat-settings-grid">
+            <div class="setting-group" style="grid-column: 1 / -1;">
+              <label class="setting-label">
+                <span><i class="fa-solid fa-key"></i> ThaiLLM Bearer Token (API Key)</span>
+                <span style="font-size: 0.75rem; color: var(--primary);">Bearer Token สำหรับเรียก API</span>
+              </label>
+              <div style="position: relative; display: flex; align-items: center;">
+                <input type="password" id="chatApiKeyInput" class="setting-input" style="width: 100%; padding-right: 40px;" value="hbyF************************fHd6" placeholder="Bearer Token เช่น hbyF...">
+                <button type="button" id="toggleApiKeyVisBtn" style="position: absolute; right: 10px; background: none; border: none; color: #94a3b8; cursor: pointer;">
+                  <i class="fa-solid fa-eye" id="apiKeyVisIcon"></i>
+                </button>
+              </div>
+              <div style="font-size: 0.74rem; color: #94a3b8; margin-top: 3px;">
+                * สามารถระบุคีย์จริงจาก ThaiLLM (http://thaillm.or.th) เพื่อส่งคำร้องขอ
+              </div>
+            </div>
+
+            <div class="setting-group">
+              <label class="setting-label"><span><i class="fa-solid fa-microchip"></i> ชื่อโมเดล (Model)</span></label>
+              <input type="text" id="chatModelInput" class="setting-input" value="pathumma-thaillm-qwen3-8b-think-3.0.0">
+            </div>
+
+            <div class="setting-group">
+              <label class="setting-label">
+                <span><i class="fa-solid fa-temperature-half"></i> Temperature</span>
+                <span id="tempValueLabel">0.3</span>
+              </label>
+              <input type="range" id="chatTempInput" min="0" max="1" step="0.05" value="0.3" class="custom-range" oninput="document.getElementById('tempValueLabel').textContent = this.value">
+            </div>
+
+            <div class="setting-group">
+              <label class="setting-label"><span><i class="fa-solid fa-coins"></i> Max Tokens</span></label>
+              <input type="number" id="chatMaxTokensInput" class="setting-input" value="2048" min="256" max="8192" step="256">
+            </div>
+          </div>
+        </div>
+
+        <!-- Suggestion Chips -->
+        <div class="quick-chips">
+          <div class="quick-chip" onclick="handleChipClick('ช่วยแนะนำเมนูอาหารไทยสุขภาพที่มีสารอาหารครบ 5 หมู่ และแคลอรี่ไม่เกิน 500 kcal')">
+            <i class="fa-solid fa-bowl-rice"></i> แนะนำเมนูสุขภาพ
+          </div>
+          <div class="quick-chip" onclick="handleChipClick('ผู้ป่วยเบาหวานและความดันโลหิตสูง ควรเลือกทานและหลีกเลี่ยงอาหารไทยประเภทใดบ้าง')">
+            <i class="fa-solid fa-heart-pulse"></i> อาหารเบาหวานและความดัน
+          </div>
+          <div class="quick-chip" onclick="handleChipClick('ขอสูตรต้มยำกุ้งน้ำใสแคลอรี่ต่ำ พร้อมวิธีปรุงแบบต้นตำรับ')">
+            <i class="fa-solid fa-utensils"></i> สูตรต้มยำกุ้งคลีน
+          </div>
+          <div class="quick-chip" onclick="handleChipClick('ส้มตำไทย 1 จานให้พลังงานกี่แคลอรี่ มีประโยชน์และข้อควรระวังอย่างไร')">
+            <i class="fa-solid fa-calculator"></i> คำนวณแคลอรี่ส้มตำ
+          </div>
+          <div class="quick-chip" onclick="handleChipClick('สวัสดีครับ มีความสามารถอะไรบ้าง ช่วยแนะนำตัวหน่อยครับ')">
+            <i class="fa-solid fa-hand"></i> ทักทาย AI
+          </div>
+        </div>
+
+        <!-- Chat Messages Area -->
+        <div class="chat-messages" id="chatMessages">
+          <!-- Welcome message -->
+          <div class="chat-msg assistant">
+            <div class="msg-avatar">
+              <i class="fa-solid fa-robot"></i>
+            </div>
+            <div class="msg-body">
+              <div class="msg-bubble">
+                <p>สวัสดีครับ! ผมคือ <strong>ThaiLLM AI Assistant</strong> ขับเคลื่อนด้วยโมเดลภาษา <strong>Pathumma ThaiLLM (Qwen3-8B Think)</strong> จากโครงการ ThaiLLM 🇹🇭</p>
+                <p style="margin-top: 8px;">ผมพร้อมตอบคำถามเกี่ยวกับอาหารไทย, โภชนาการ, คำแนะนำสุขภาพ, การคำนวณแคลอรี่ หรือพูดคุยทั่วไปได้ตลอดเวลา คุณสามารถเลือกหัวข้อตัวอย่างด้านบน หรือพิมพ์คำถามที่ต้องการด้านล่างได้เลยครับ!</p>
+              </div>
+              <div class="msg-footer">
+                <span>ThaiLLM Bot</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat Input Form -->
+        <div class="chat-input-area">
+          <textarea id="chatInputText" class="chat-textarea" placeholder="พิมพ์ข้อความคุยกับ ThaiLLM (กด Enter เพื่อส่ง, Shift + Enter เพื่อขึ้นบรรทัดใหม่)..." rows="1"></textarea>
+          <button id="sendChatBtn" class="chat-send-btn" title="ส่งข้อความ">
+            <i class="fa-solid fa-paper-plane" id="sendChatIcon"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const dropArea = document.getElementById('dropArea');
+    const previewContainer = document.getElementById('previewContainer');
+    const imagePreview = document.getElementById('imagePreview');
+    const removeImgBtn = document.getElementById('removeImgBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const errorBox = document.getElementById('errorBox');
+    const errorText = document.getElementById('errorText');
+    const spinner = document.getElementById('spinner');
+    const btnIcon = document.getElementById('btnIcon');
+    const btnText = document.getElementById('btnText');
+    const apiKeyInput = document.getElementById('apiKeyInput');
+    const customRestrictions = document.getElementById('customRestrictions');
+
+    const emptyResult = document.getElementById('emptyResult');
+    const resultContent = document.getElementById('resultContent');
+    const healthAlertContainer = document.getElementById('healthAlertContainer');
+    const topFoodResult = document.getElementById('topFoodResult');
+    const topFoodLabel = document.getElementById('topFoodLabel');
+    const topFoodScore = document.getElementById('topFoodScore');
+    const topProgressBar = document.getElementById('topProgressBar');
+    const resultsList = document.getElementById('resultsList');
+    const otherResultsSection = document.getElementById('otherResultsSection');
+    const rawJsonBox = document.getElementById('rawJsonBox');
+
+    let selectedFile = null;
+
+    dropArea.addEventListener('click', () => fileInput.click());
+
+    dropArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropArea.classList.add('dragover');
+    });
+
+    ['dragleave', 'dragend'].forEach(type => {
+      dropArea.addEventListener(type, () => dropArea.classList.remove('dragover'));
+    });
+
+    dropArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropArea.classList.remove('dragover');
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        handleFileSelect(e.dataTransfer.files[0]);
+      }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files.length > 0) {
+        handleFileSelect(e.target.files[0]);
+      }
+    });
+
+    removeImgBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      resetImage();
+    });
+
+    function resetImage() {
+      selectedFile = null;
+      fileInput.value = '';
+      imagePreview.src = '';
+      previewContainer.style.display = 'none';
+      dropArea.style.display = 'block';
+      submitBtn.disabled = true;
+      clearError();
+    }
+
+    function showError(msg) {
+      errorText.textContent = msg;
+      errorBox.style.display = 'flex';
+    }
+
+    function clearError() {
+      errorText.textContent = '';
+      errorBox.style.display = 'none';
+    }
+
+    function handleFileSelect(file) {
+      clearError();
+      if (!file.type.startsWith('image/')) {
+        showError('กรุณาเลือกไฟล์ที่เป็นรูปภาพเท่านั้น (JPG, PNG, WebP)');
+        return;
+      }
+
+      if (file.size > 2 * 1024 * 1024) {
+        showError('ขนาดไฟล์ต้องไม่เกิน 2 MB ตามข้อกำหนดของ API');
+        return;
+      }
+
+      selectedFile = file;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        imagePreview.src = e.target.result;
+        previewContainer.style.display = 'block';
+        dropArea.style.display = 'none';
+        submitBtn.disabled = false;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function getSelectedOptions(name) {
+      const checkedBoxes = document.querySelectorAll(`input[name="${name}"]:checked`);
+      return Array.from(checkedBoxes).map(cb => cb.value);
+    }
+
+    submitBtn.addEventListener('click', async () => {
+      if (!selectedFile) return;
+
+      clearError();
+      submitBtn.disabled = true;
+      spinner.style.display = 'inline-block';
+      btnIcon.style.display = 'none';
+      btnText.textContent = 'AI กำลังวิเคราะห์...';
+
+      const selectedAllergies = getSelectedOptions('allergy');
+      const selectedConditions = getSelectedOptions('condition');
+      const customText = customRestrictions.value.trim();
+
+      const formData = new FormData();
+      formData.append('image', selectedFile);
+      formData.append('api_key', apiKeyInput.value.trim());
+      formData.append('allergies', JSON.stringify(selectedAllergies));
+      formData.append('health_conditions', JSON.stringify(selectedConditions));
+      formData.append('custom_restrictions', customText);
+
+      try {
+        const response = await fetch('/predict', {
+          method: 'POST',
+          body: formData
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(result.error || 'เกิดข้อผิดพลาดในการประมวลผล');
+        }
+
+        displayResult(result.data, result.health_warnings || [], {
+          allergies: selectedAllergies,
+          conditions: selectedConditions,
+          custom: customText
+        });
+      } catch (err) {
+        showError(err.message);
+      } finally {
+        submitBtn.disabled = false;
+        spinner.style.display = 'none';
+        btnIcon.style.display = 'inline-block';
+        btnText.textContent = 'วิเคราะห์อาหาร & ตรวจสอบสุขภาพ';
+      }
+    });
+
+    function displayResult(data, healthWarnings, userSelection) {
+      emptyResult.style.display = 'none';
+      resultContent.style.display = 'block';
+      rawJsonBox.textContent = JSON.stringify(data, null, 2);
+
+      // Render Health & Allergy Safety Alerts
+      healthAlertContainer.innerHTML = '';
+      const hasRestrictions = userSelection.allergies.length > 0 || userSelection.conditions.length > 0 || userSelection.custom.length > 0;
+
+      if (healthWarnings.length > 0) {
+        healthWarnings.forEach(warn => {
+          const card = document.createElement('div');
+          card.className = `health-badge-card ${warn.severity}`;
+          const icon = warn.severity === 'danger' ? 'fa-triangle-exclamation' : 'fa-circle-exclamation';
+          card.innerHTML = `
+            <div class="alert-icon"><i class="fa-solid ${icon}"></i></div>
+            <div>
+              <div class="health-badge-header">${warn.title}</div>
+              <div class="health-badge-body">${warn.detail}</div>
+            </div>
+          `;
+          healthAlertContainer.appendChild(card);
+        });
+      } else if (hasRestrictions) {
+        const safeCard = document.createElement('div');
+        safeCard.className = 'health-badge-card safe';
+        safeCard.innerHTML = `
+          <div class="alert-icon"><i class="fa-solid fa-circle-check"></i></div>
+          <div>
+            <div class="health-badge-header">ปลอดภัย: ไม่พบส่วนผสมที่ตรงกับข้อจำกัดของคุณ</div>
+            <div class="health-badge-body">จากชื่อเมนูอาหารที่ตรวจพบ ไม่พบสารก่อภูมิแพ้หรือวัตถุดิบที่คุณระบุหลีกเลี่ยง (โปรดสอบถามผู้ปรุงเพื่อความปลอดภัยสูงสุด)</div>
+          </div>
+        `;
+        healthAlertContainer.appendChild(safeCard);
+      }
+
+      const objects = data.objects || [];
+      if (objects.length === 0) {
+        topFoodResult.textContent = 'ไม่พบผลลัพธ์อาหาร';
+        topFoodLabel.textContent = '-';
+        topFoodScore.textContent = '0%';
+        topProgressBar.style.width = '0%';
+        otherResultsSection.style.display = 'none';
+        return;
+      }
+
+      // First prediction
+      const top = objects[0];
+      const topScoreVal = parseFloat(top.score) || 0;
+      const topScorePercent = (topScoreVal * 100).toFixed(1);
+
+      topFoodResult.textContent = top.result || '-';
+      topFoodLabel.textContent = `ป้ายกำกับ: ${top.label || '-'}`;
+      topFoodScore.textContent = `${topScorePercent}%`;
+      topProgressBar.style.width = `${Math.min(100, Math.max(0, topScorePercent))}%`;
+
+      // Other predictions
+      resultsList.innerHTML = '';
+      if (objects.length > 1) {
+        otherResultsSection.style.display = 'block';
+        for (let i = 1; i < objects.length; i++) {
+          const item = objects[i];
+          const scoreVal = parseFloat(item.score) || 0;
+          const scorePercent = (scoreVal * 100).toFixed(1);
+
+          const li = document.createElement('li');
+          li.className = 'result-item';
+          li.innerHTML = `
+            <div class="result-item-info">
+              <div class="result-item-name">${item.label || item.result}</div>
+              <div class="result-item-rank">อันดับที่ ${parseInt(item.rank) + 1 || i + 1} • ชื่ออาหาร: ${item.result}</div>
+            </div>
+            <div class="result-item-score-pill">${scorePercent}%</div>
+          `;
+          resultsList.appendChild(li);
+        }
+      } else {
+        otherResultsSection.style.display = 'none';
+      }
+
+      // Enable Ask Chatbot button for this dish
+      const askChatBtn = document.getElementById('askChatBtn');
+      if (askChatBtn) {
+        askChatBtn.style.display = 'inline-flex';
+        askChatBtn.onclick = () => {
+          switchService('chat');
+          const prompt = `ช่วยแนะนำข้อมูลของเมนู "${top.result}" อย่างละเอียด: มีส่วนประกอบและวัตถุดิบสำคัญอะไรบ้าง, คุณค่าทางโภชนาการและแคลอรี่โดยประมาณ และคำแนะนำสำหรับคนรักสุขภาพหรือผู้ที่มีโรคประจำตัว`;
+          document.getElementById('chatInputText').value = prompt;
+          sendChatMessage();
+        };
+      }
+    }
+
+    /* =========================================
+       SERVICE 2: THAILLM CHATBOT JAVASCRIPT
+       ========================================= */
+
+    function switchService(service) {
+      const tab1 = document.getElementById('tabService1');
+      const tab2 = document.getElementById('tabService2');
+      const sec1 = document.getElementById('serviceFoodSection');
+      const sec2 = document.getElementById('serviceChatSection');
+
+      if (service === 'food') {
+        tab1.classList.add('active');
+        tab2.classList.remove('active');
+        sec1.style.display = 'block';
+        sec2.style.display = 'none';
+      } else {
+        tab2.classList.add('active');
+        tab1.classList.remove('active');
+        sec2.style.display = 'block';
+        sec1.style.display = 'none';
+        setTimeout(() => {
+          const input = document.getElementById('chatInputText');
+          input.focus();
+          const chatMsgBox = document.getElementById('chatMessages');
+          chatMsgBox.scrollTop = chatMsgBox.scrollHeight;
+        }, 100);
+      }
+    }
+
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInputText = document.getElementById('chatInputText');
+    const sendChatBtn = document.getElementById('sendChatBtn');
+    const chatApiKeyInput = document.getElementById('chatApiKeyInput');
+    const toggleApiKeyVisBtn = document.getElementById('toggleApiKeyVisBtn');
+    const apiKeyVisIcon = document.getElementById('apiKeyVisIcon');
+    const chatModelInput = document.getElementById('chatModelInput');
+    const chatTempInput = document.getElementById('chatTempInput');
+    const chatMaxTokensInput = document.getElementById('chatMaxTokensInput');
+    const toggleChatSettingsBtn = document.getElementById('toggleChatSettingsBtn');
+    const chatSettingsPanel = document.getElementById('chatSettingsPanel');
+    const clearChatBtn = document.getElementById('clearChatBtn');
+    const currentModelDisplay = document.getElementById('currentModelDisplay');
+
+    let chatHistory = [];
+    let isChatLoading = false;
+
+    // Toggle settings panel
+    toggleChatSettingsBtn.addEventListener('click', () => {
+      const isVisible = chatSettingsPanel.style.display === 'block';
+      chatSettingsPanel.style.display = isVisible ? 'none' : 'block';
+      toggleChatSettingsBtn.style.color = isVisible ? '#475569' : '#f95738';
+    });
+
+    // Toggle API Key visibility
+    toggleApiKeyVisBtn.addEventListener('click', () => {
+      if (chatApiKeyInput.type === 'password') {
+        chatApiKeyInput.type = 'text';
+        apiKeyVisIcon.className = 'fa-solid fa-eye-slash';
+      } else {
+        chatApiKeyInput.type = 'password';
+        apiKeyVisIcon.className = 'fa-solid fa-eye';
+      }
+    });
+
+    // Update model display badge when model name changes
+    chatModelInput.addEventListener('input', () => {
+      currentModelDisplay.textContent = chatModelInput.value.trim() || 'pathumma-thaillm-qwen3-8b-think-3.0.0';
+    });
+
+    // Auto resize textarea
+    chatInputText.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 130) + 'px';
+    });
+
+    // Enter to send
+    chatInputText.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendChatMessage();
+      }
+    });
+
+    sendChatBtn.addEventListener('click', () => {
+      sendChatMessage();
+    });
+
+    // Clear chat
+    clearChatBtn.addEventListener('click', () => {
+      if (confirm('คุณต้องการล้างประวัติการสนทนาทั้งหมดใช่หรือไม่?')) {
+        chatHistory = [];
+        chatMessages.innerHTML = `
+          <div class="chat-msg assistant">
+            <div class="msg-avatar"><i class="fa-solid fa-robot"></i></div>
+            <div class="msg-body">
+              <div class="msg-bubble">
+                <p>ประวัติการสนทนาถูกรีเซ็ตแล้วครับ มีข้อสงสัยหรือเมนูอาหารใดที่ต้องการให้ ThaiLLM แนะนำ สอบถามได้เลยครับ!</p>
+              </div>
+              <div class="msg-footer"><span>ThaiLLM Bot</span></div>
+            </div>
+          </div>
+        `;
+      }
+    });
+
+    function handleChipClick(text) {
+      chatInputText.value = text;
+      sendChatMessage();
+    }
+
+    function escapeHtml(text) {
+      const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      };
+      return String(text).replace(/[&<>"']/g, m => map[m]);
+    }
+
+    function toggleThink(element) {
+      const content = element.nextElementSibling;
+      const icon = element.querySelector('.fa-chevron-down, .fa-chevron-up');
+      if (content.style.display === 'none') {
+        content.style.display = 'block';
+        if (icon) {
+          icon.classList.remove('fa-chevron-down');
+          icon.classList.add('fa-chevron-up');
+        }
+      } else {
+        content.style.display = 'none';
+        if (icon) {
+          icon.classList.remove('fa-chevron-up');
+          icon.classList.add('fa-chevron-down');
+        }
+      }
+    }
+
+    function formatMarkdown(rawText) {
+      if (!rawText) return '';
+
+      let thinkHtml = '';
+      let text = rawText;
+
+      // Detect <think>...</think> reasoning tags
+      const thinkMatch = text.match(/<think>([\s\S]*?)<\/think>/i);
+      if (thinkMatch) {
+        const thought = escapeHtml(thinkMatch[1].trim());
+        thinkHtml = `
+          <div class="think-box">
+            <div class="think-toggle" onclick="toggleThink(this)">
+              <i class="fa-solid fa-brain"></i>
+              <span>กระบวนการคิดและวิเคราะห์ (Thinking Process)</span>
+              <i class="fa-solid fa-chevron-down" style="font-size: 0.75rem; margin-left: auto;"></i>
+            </div>
+            <div class="think-content" style="display: none;">${thought}</div>
+          </div>
+        `;
+        text = text.replace(/<think>[\s\S]*?<\/think>/i, '').trim();
+      }
+
+      // Escape raw text
+      let safe = escapeHtml(text);
+
+      // Code blocks: ```code```
+      safe = safe.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, (match, lang, code) => {
+        return `<pre><code>${code}</code></pre>`;
+      });
+
+      // Inline code: `code`
+      safe = safe.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+      // Bold: **text**
+      safe = safe.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+
+      // Italic: *text*
+      safe = safe.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+
+      // Lines and lists
+      const lines = safe.split('\n');
+      let inUl = false;
+      let inOl = false;
+      let out = [];
+
+      for (let line of lines) {
+        const ulMatch = line.match(/^(\s*)[-*•]\s+(.+)/);
+        const olMatch = line.match(/^(\s*)\d+\.\s+(.+)/);
+
+        if (ulMatch) {
+          if (inOl) { out.push('</ol>'); inOl = false; }
+          if (!inUl) { out.push('<ul>'); inUl = true; }
+          out.push(`<li>${ulMatch[2]}</li>`);
+        } else if (olMatch) {
+          if (inUl) { out.push('</ul>'); inUl = false; }
+          if (!inOl) { out.push('<ol>'); inOl = true; }
+          out.push(`<li>${olMatch[2]}</li>`);
+        } else {
+          if (inUl) { out.push('</ul>'); inUl = false; }
+          if (inOl) { out.push('</ol>'); inOl = false; }
+          if (line.trim().length > 0) {
+            out.push(`<p>${line}</p>`);
+          }
+        }
+      }
+      if (inUl) out.push('</ul>');
+      if (inOl) out.push('</ol>');
+
+      return thinkHtml + out.join('');
+    }
+
+    function copyMessageContent(btn, text) {
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-check" style="color: #10b981;"></i> คัดลอกแล้ว';
+        setTimeout(() => { btn.innerHTML = orig; }, 2000);
+      }).catch(() => {
+        alert('ไม่สามารถคัดลอกข้อความได้');
+      });
+    }
+
+    function appendUserMessage(text) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'chat-msg user';
+      msgDiv.innerHTML = `
+        <div class="msg-avatar"><i class="fa-solid fa-user"></i></div>
+        <div class="msg-body">
+          <div class="msg-bubble">${escapeHtml(text).replace(/\n/g, '<br>')}</div>
+          <div class="msg-footer" style="justify-content: flex-end;">
+            <span>คุณ</span>
+          </div>
+        </div>
+      `;
+      chatMessages.appendChild(msgDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function appendAssistantMessage(text) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'chat-msg assistant';
+      const formatted = formatMarkdown(text);
+      
+      const copyId = 'copy_' + Date.now();
+      msgDiv.innerHTML = `
+        <div class="msg-avatar"><i class="fa-solid fa-robot"></i></div>
+        <div class="msg-body">
+          <div class="msg-bubble">${formatted}</div>
+          <div class="msg-footer">
+            <span>ThaiLLM Bot</span>
+            <button class="msg-copy-btn" id="${copyId}">
+              <i class="fa-regular fa-copy"></i> คัดลอก
+            </button>
+          </div>
+        </div>
+      `;
+      chatMessages.appendChild(msgDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+
+      document.getElementById(copyId).addEventListener('click', function() {
+        // Strip think tag when copying
+        const cleanText = text.replace(/<think>[\s\S]*?<\/think>/i, '').trim();
+        copyMessageContent(this, cleanText || text);
+      });
+    }
+
+    function showTypingIndicator() {
+      const typingDiv = document.createElement('div');
+      typingDiv.className = 'chat-msg assistant';
+      typingDiv.id = 'chatTypingIndicator';
+      typingDiv.innerHTML = `
+        <div class="msg-avatar"><i class="fa-solid fa-robot"></i></div>
+        <div class="msg-body">
+          <div class="msg-bubble" style="background: white; border: 1px solid #e2e8f0;">
+            <div class="typing-dots">
+              <span></span><span></span><span></span>
+            </div>
+            <span style="font-size: 0.8rem; color: #64748b; margin-left: 8px;">ThaiLLM กำลังคิดและตอบคำถาม...</span>
+          </div>
+        </div>
+      `;
+      chatMessages.appendChild(typingDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function removeTypingIndicator() {
+      const typing = document.getElementById('chatTypingIndicator');
+      if (typing) typing.remove();
+    }
+
+    async function sendChatMessage() {
+      if (isChatLoading) return;
+
+      const userText = chatInputText.value.trim();
+      if (!userText) return;
+
+      // Append user message
+      appendUserMessage(userText);
+      chatHistory.push({ role: 'user', content: userText });
+
+      // Clear input and reset height
+      chatInputText.value = '';
+      chatInputText.style.height = 'auto';
+
+      // Set loading state
+      isChatLoading = true;
+      sendChatBtn.disabled = true;
+      showTypingIndicator();
+
+      const apiKey = chatApiKeyInput.value.trim();
+      const model = chatModelInput.value.trim() || 'pathumma-thaillm-qwen3-8b-think-3.0.0';
+      const temperature = parseFloat(chatTempInput.value) || 0.3;
+      const maxTokens = parseInt(chatMaxTokensInput.value) || 2048;
+
+      try {
+        const response = await fetch('/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: chatHistory,
+            api_key: apiKey,
+            model: model,
+            temperature: temperature,
+            max_tokens: maxTokens
+          })
+        });
+
+        const data = await response.json();
+        removeTypingIndicator();
+
+        if (!response.ok || !data.success) {
+          const errDetail = data.error || `HTTP ${response.status}: ไม่สามารถรับการตอบกลับจาก ThaiLLM ได้`;
+          const errorMsgDiv = document.createElement('div');
+          errorMsgDiv.className = 'chat-msg assistant';
+          errorMsgDiv.innerHTML = `
+            <div class="msg-avatar" style="background: #ef4444;"><i class="fa-solid fa-circle-exclamation"></i></div>
+            <div class="msg-body">
+              <div class="msg-bubble" style="background: #fef2f2; border: 1px solid #fecaca; color: #991b1b;">
+                <strong><i class="fa-solid fa-triangle-exclamation"></i> ข้อผิดพลาด:</strong><br>${escapeHtml(errDetail)}
+                ${response.status === 401 ? '<div style="margin-top: 8px; font-size: 0.82rem; color: #b91c1c;">👉 คลิกที่ปุ่ม <strong><i class=\'fa-solid fa-sliders\'></i> ตั้งค่า</strong> มุมขวาบน เพื่อตรวจสอบหรือเปลี่ยน ThaiLLM Bearer Token</div>' : ''}
+              </div>
+              <div class="msg-footer"><span>ระบบแจ้งเตือน</span></div>
+            </div>
+          `;
+          chatMessages.appendChild(errorMsgDiv);
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        } else {
+          const reply = data.reply || '(ไม่มีข้อความตอบกลับ)';
+          appendAssistantMessage(reply);
+          chatHistory.push({ role: 'assistant', content: reply });
+        }
+      } catch (err) {
+        removeTypingIndicator();
+        const networkErrorDiv = document.createElement('div');
+        networkErrorDiv.className = 'chat-msg assistant';
+        networkErrorDiv.innerHTML = `
+          <div class="msg-avatar" style="background: #ef4444;"><i class="fa-solid fa-wifi"></i></div>
+          <div class="msg-body">
+            <div class="msg-bubble" style="background: #fef2f2; border: 1px solid #fecaca; color: #991b1b;">
+              <strong>เกิดข้อผิดพลาดในการเชื่อมต่อ:</strong> ${escapeHtml(err.message)}
+            </div>
+            <div class="msg-footer"><span>เครือข่ายขัดข้อง</span></div>
+          </div>
+        `;
+        chatMessages.appendChild(networkErrorDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      } finally {
+        isChatLoading = false;
+        sendChatBtn.disabled = false;
+        chatInputText.focus();
+      }
+    }
+  </script>
+</body>
+</html>
